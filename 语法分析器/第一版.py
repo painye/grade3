@@ -8,7 +8,6 @@ class Words(str):
         self.Vt = []  # 记录文法中的终结符
         self.Vn = []  # 记录文法中的非终结符
         self.record = {}  # 记录文法中的具体情况，是一个字典的形式，键为左边的非终结符，值为右边的推导式内容。可以理解为这就是文法
-        self.mySymbol = []  # 记录文法中出现的运算符
         self.flag = True  # 该值反应某一推导式是否会出现两个连续的非终结符，即文法是否是算符优先文法
         self.firstvt = {}  # 记录该文法的firstvt集，字典形式，键值对表示某非终结符的firstvt集
         self.lastvt = {}  # 记录文法的lastvt集， 字典形式， 键值对表示某非终结符的lastvt集
@@ -21,25 +20,11 @@ class Words(str):
                 self.word = line.strip()  # 去掉回车和句首空格，预处理字符串
                 self.analyzingWords()
 
-    def Print(self):  # 输出格式控制
-        print(self.Vn)  # 输出非终结符
-        print(self.Vt)  # 输出终结符
-        print(self.mySymbol)  # 输出运算符
-        print(self.record)  # 输出文法记录
-        print(self.flag)  # 输出是否算符文法
-        print(self.firstvt)
-        print(self.lastvt)
-        self.getprecedenceMatrix()
-        for key, value in self.precedenceMatrix.items():
-            print('[' + key + ']' + ':' + value, end=' ')
-        print()
-        self.isLeft()
-
     def getFirstvt(self):
-        f = open('FIRST集.txt', 'w')
-        f.write('')
         stack = []  # 这是一个栈数据结构
         # 这是19页ppt的步骤（2）（3）----------------------------------------------------------------------
+        print('\n\n\n'+'*' * 160)
+        print('\t\t\tFIRSTVT集的栈出栈入栈情况')
         for key, value in self.record.items():  # 遍历文法
             firstvt = []  # firstvt中存储形如U->b…或U->Vb的产生式
             for str in value:
@@ -53,17 +38,20 @@ class Words(str):
         # 步骤（4）---------------------------------------------------------------------------------------
         while stack:
             l = stack.pop()
-            print('出栈：  <---' + l[0] + '   ' + l[1] + '---->')
+            print('\t\t\t出栈：  <---' + l[0] + '   ' + l[1] + '---->')
             for key, value in self.record.items():
                 if l[0] in value:
                     if l[1] not in self.firstvt[key]:  # 即判断出栈的非终结符V，是否存在推导式U->V，即v是否在U的value里
-                        print('入栈：  ' + '--->' + key + '   ' + l[1] + '<----')
+                        print('\t\t\t入栈：  ' + '--->' + key + '   ' + l[1] + '<----')
                         stack.append([key, l[1]])  # 如果存在根据步骤4，将key, l[1]入栈，并将F[U，b]置一，即存入self.firstvt
                         self.firstvt[key] += l[1]
+
 
     def getLastvt(self):
         stack = []  # 这是一个栈数据结构
         # 这是19页ppt的步骤（2）（3）----------------------------------------------------------------------
+        print('*' * 160)
+        print('\t\t\tLATSTVT集的栈出栈入栈情况')
         for key, value in self.record.items():  # 遍历文法
             lastvt = []  # firstvt中存储形如U->b…或U->Vb的产生式
             for str in value:
@@ -77,11 +65,11 @@ class Words(str):
         # 步骤（4）---------------------------------------------------------------------------------------
         while stack:
             l = stack.pop()
-            print('出栈：  <---' + l[0] + '   ' + l[1] + '---->')
+            print('\t\t\t出栈：  <---' + l[0] + '   ' + l[1] + '---->')
             for key, value in self.record.items():
                 if l[0] in value:
                     if l[1] not in self.lastvt[key]:
-                        print('入栈   --->' + key + '   ' + l[1] + '<----')
+                        print('\t\t\t入栈   --->' + key + '   ' + l[1] + '<----')
                         stack.append([key, l[1]])
                         self.lastvt[key] += l[1]
 
@@ -112,12 +100,14 @@ class Words(str):
         self.precedenceMatrix['#  #'] = '='
 
     def reduction(self, l):
+        fmt = '{{:{}}}{{:{}}}'.format(50, 5)
+        left = ''.join(l)
         flag = False
         for key, value in self.record.items():
             for n in value:
                 n = list(n)
                 if n == l:
-                    print(l)
+                    print(fmt.format(left, key))
                     return key
         for j in range(len(l)):
             for key, value in self.record.items():
@@ -134,7 +124,7 @@ class Words(str):
             for n in value:
                 n = list(n)
                 if n == l:
-                    print(l)
+                    print(fmt.format(left, key))
                     return key
 
     def isLeft(self):
@@ -172,13 +162,11 @@ class Words(str):
                 N = []
                 N = self.reduction(left)
                 s += N
-                print(s)
             if self.precedenceMatrix[s[j] + '  ' + a] == '<' or self.precedenceMatrix[s[j] + '  ' + a] == '=':
                 k += 1
                 s.append(a)
             if a == '#':
                 break
-        print(s)
 
     def analyzingWords(self):
         self.i = 1
@@ -213,15 +201,53 @@ from tkinter import *
 
 
 class Menue():
+    def wOPG(self):
+        print('*' * 160)
+        print('*文法：', end='   ')
+        print(self.word.record)
+        print('*' * 160)
+
     def wFirst(self):
-        i = os.system('cls')
         self.word.getFirstvt()
+        print('*'*160)
+        print('*文法的FIRSTVT集：', end = '   ')
         print(self.word.firstvt)
+        print('*'*160)
 
     def wLast(self):
-        i = os.system('clear')
+        print('\n\n\n')
         self.word.getLastvt()
+        print('*' * 160)
+        print('*文法的LASTVT集：', end='   ')
         print(self.word.lastvt)
+        print('*' * 160)
+
+    def wVn(self):
+        print('\n\n\n'+'*' * 160)
+        print('*文法的Vn集：', end='   ')
+        print(self.word.Vn)
+        print('*' * 160)
+
+    def wVt(self):
+        print('\n\n\n'+'*' * 160)
+        print('*文法的Vt集：', end='   ')
+        print(self.word.Vt)
+        print('*' * 160)
+
+    def wPrecedence(self):
+        print('\n\n\n' + '*' * 160)
+        print('算符优先字典')
+        self.word.getprecedenceMatrix()
+        print(self.word.precedenceMatrix)
+        print('*' * 160)
+
+    def wIsleft(self):
+        print('\n\n\n' + '*' * 160)
+        print('\t\t\t\t\t\t归约处理')
+        fmt = '{{:{}}}{{:{}}}'.format(45, 5)
+        print(fmt.format('最左素短语', '归约符号'))
+        self.word.isLeft()
+        print('*' * 160)
 
     def center_window(self, width, height):
         screenwidth = self.window.winfo_screenwidth()
@@ -230,7 +256,6 @@ class Menue():
         print(size)
         self.window.geometry(size)
 
-
     def __init__(self):
         self.window = Tk()     # 主菜单界面
         self.center_window( 300, 240)
@@ -238,21 +263,18 @@ class Menue():
         form = Frame(self.window)
         form.pack()
         entries = {}
-        Button(form, text='FIRSTVT集', font = 'Helvetica -12 bold', command=(lambda: self.wFirst())).pack(side=LEFT,expand=YES, fill=X)
-        Button(form, text='LASTVT集', font = 'Helvetica -12 bold', command=(lambda: self.wLast())).pack(side = RIGHT, expand=YES, fill=X)
-        str = '#T+T*F+i+F#'
+        Button(form, text='处理后的文法', font='Helvetica -12 bold', command=(lambda: self.wOPG())).pack(expand=YES, fill=X)
+        Button (form, text='Vn集', font = 'Helvetica -12 bold', command=(lambda : self.wVn())).pack( expand=YES, fill=X)
+        Button(form, text='Vt集', font='Helvetica -12 bold', command=(lambda: self.wVt())).pack( expand=YES,fill=X)
+        Button(form, text='FIRSTVT集', font = 'Helvetica -12 bold', command=(lambda: self.wFirst())).pack(expand=YES, fill=X)
+        Button(form, text='LASTVT集', font = 'Helvetica -12 bold', command=(lambda: self.wLast())).pack( expand=YES, fill=X)
+        Button(form, text='算符优先字典', font='Helvetica -12 bold', command=(lambda: self.wPrecedence())).pack(expand=YES, fill=X)
+        Button(form, text='归约处理', font='Helvetica -12 bold', command=(lambda: self.wIsleft())).pack(expand=YES,fill=X)
+        str = '#T+T*F+i#'
         self.word = Words(str)
         self.word.splitLine()
         self.window.mainloop()     # 开始事件循环
 
 
-
 if __name__ == '__main__':
-    '''str = '#T+T*F+i+F#'
-    print(str)
-    w = Words(str)
-    w.splitLine()
-    w.getFirstvt()
-    w.getLastvt()
-    w.Print()'''
     m = Menue()
