@@ -5,6 +5,8 @@ class Words(str):
         self.str = str
         self.i = 0  # 记录字符下标
         self.line = 0  # 记录行数
+
+
         self.Vt = []  # 记录文法中的终结符
         self.Vn = []  # 记录文法中的非终结符
         self.record = {}  # 记录文法中的具体情况，是一个字典的形式，键为左边的非终结符，值为右边的推导式内容。可以理解为这就是文法
@@ -14,7 +16,7 @@ class Words(str):
         self.precedenceMatrix = {}  # 算符优先矩阵
 
     def splitLine(self):  # 将文法的每个推导式分离出来
-        with open('test.txt', 'r', encoding='utf-8') as f:
+        with open('test3', 'r', encoding='utf-8') as f:
             for line in f.readlines():
                 self.line += 1
                 self.word = line.strip()  # 去掉回车和句首空格，预处理字符串
@@ -28,11 +30,13 @@ class Words(str):
         for key, value in self.record.items():  # 遍历文法
             firstvt = []  # firstvt中存储形如U->b…或U->Vb的产生式
             for str in value:
-                for c in str:
-                    if c not in self.Vn:  # 判断c是不是非终结符，是的话入栈，结束循环
-                        stack.append([key, c])
-                        firstvt.append(c)
-                        break
+                if str:
+                    if str[0] in self.Vt:
+                        stack.append([key, str[0]])
+                        firstvt.append(str[0])
+                    elif len(str) > 1 and str[1] in self.Vt:
+                        stack.append([key, str[1]])
+                        firstvt.append(str[1])
             self.firstvt[key] = firstvt
         print(stack)
         # 步骤（4）---------------------------------------------------------------------------------------
@@ -40,11 +44,12 @@ class Words(str):
             l = stack.pop()
             print('\t\t\t出栈：  <---' + l[0] + '   ' + l[1] + '---->')
             for key, value in self.record.items():
-                if l[0] in value:
-                    if l[1] not in self.firstvt[key]:  # 即判断出栈的非终结符V，是否存在推导式U->V，即v是否在U的value里
-                        print('\t\t\t入栈：  ' + '--->' + key + '   ' + l[1] + '<----')
-                        stack.append([key, l[1]])  # 如果存在根据步骤4，将key, l[1]入栈，并将F[U，b]置一，即存入self.firstvt
-                        self.firstvt[key] += l[1]
+                for str in value:
+                    if str and l[0] == str[0] and str[0] in self.Vn:
+                        if l[1] not in self.firstvt[key]:  # 即判断出栈的非终结符V，是否存在推导式U->V，即v是否在U的value里
+                            print('\t\t\t入栈：  ' + '--->' + key + '   ' + l[1] + '<----')
+                            stack.append([key, l[1]])  # 如果存在根据步骤4，将key, l[1]入栈，并将F[U，b]置一，即存入self.firstvt
+                            self.firstvt[key] += l[1]
 
 
     def getLastvt(self):
@@ -55,11 +60,14 @@ class Words(str):
         for key, value in self.record.items():  # 遍历文法
             lastvt = []  # firstvt中存储形如U->b…或U->Vb的产生式
             for str in value:
-                for c in str[::-1]:
-                    if c not in self.Vn:
-                        stack.append([key, c])
-                        lastvt.append(c)
-                        break
+                if str:
+                    length = len(str)
+                    if str[-1] in self.Vt:
+                        stack.append([key, str[-1]])
+                        lastvt.append(str[-1])
+                    elif length > 1 and str[length-2] in self.Vt:
+                        stack.append([key, str[length-2]])
+                        lastvt.append(str[length-2])
             self.lastvt[key] = lastvt
         print(stack)
         # 步骤（4）---------------------------------------------------------------------------------------
@@ -67,11 +75,12 @@ class Words(str):
             l = stack.pop()
             print('\t\t\t出栈：  <---' + l[0] + '   ' + l[1] + '---->')
             for key, value in self.record.items():
-                if l[0] in value:
-                    if l[1] not in self.lastvt[key]:
-                        print('\t\t\t入栈   --->' + key + '   ' + l[1] + '<----')
-                        stack.append([key, l[1]])
-                        self.lastvt[key] += l[1]
+                for str in value:
+                    if str and l[0] == str[-1] and str[-1] in self.Vn:
+                        if l[1] not in self.lastvt[key]:
+                            print('\t\t\t入栈   --->' + key + '   ' + l[1] + '<----')
+                            stack.append([key, l[1]])
+                            self.lastvt[key] += l[1]
 
     def getprecedenceMatrix(self):  # 建立运算符优先关系字典
         for value in self.record.values():  # 遍历所有的产生式建立优先关系字典
@@ -187,7 +196,7 @@ class Words(str):
                     # 判断是否是算符文法，即是否出现两个连续的非终结符
                     if self.i < len(self.word) and 'A' <= self.word[self.i] <= 'Z':
                         flag = False
-                elif self.word[self.i] != ' ':
+                elif self.word[self.i] != ' ' and self.word[self.i] != '@':
                     record += self.word[self.i]
                     if self.word[self.i] != '|' and self.word[self.i] not in self.Vt:
                         self.Vt.append(self.word[self.i])
@@ -243,7 +252,7 @@ class Menue():
 
     def wIsleft(self):
         print('\n\n\n' + '*' * 160)
-        print('\t\t\t\t\t\t归约处理')
+        print('\t\t\t\t\t\t归约处 理')
         fmt = '{{:{}}}{{:{}}}'.format(45, 5)
         print(fmt.format('最左素短语', '归约符号'))
         self.word.isLeft()
@@ -256,7 +265,7 @@ class Menue():
         print(size)
         self.window.geometry(size)
 
-    def __init__(self):
+    def __init__(self,str):
         self.window = Tk()     # 主菜单界面
         self.center_window( 300, 240)
         Label(self.window, text='语法分析器', font = 'Helvetica -12 bold').pack(side=TOP)    # 创建一个标签并应用布局管理器
@@ -270,11 +279,11 @@ class Menue():
         Button(form, text='LASTVT集', font = 'Helvetica -12 bold', command=(lambda: self.wLast())).pack( expand=YES, fill=X)
         Button(form, text='算符优先字典', font='Helvetica -12 bold', command=(lambda: self.wPrecedence())).pack(expand=YES, fill=X)
         Button(form, text='归约处理', font='Helvetica -12 bold', command=(lambda: self.wIsleft())).pack(expand=YES,fill=X)
-        str = '#T+T*F+i#'
         self.word = Words(str)
         self.word.splitLine()
         self.window.mainloop()     # 开始事件循环
 
 
 if __name__ == '__main__':
-    m = Menue()
+    str = input()
+    m = Menue(str)
