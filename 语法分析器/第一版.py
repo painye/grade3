@@ -17,7 +17,7 @@ class Words(str):
         self.precedenceMatrix = {}  # 算符优先矩阵
 
     def splitLine(self):  # 将文法的每个推导式分离出来
-        with open('test.txt', 'r', encoding='utf-8') as f:
+        with open('test3', 'r', encoding='utf-8') as f:
             for line in f.readlines():
                 self.line += 1
                 self.word = line.strip()  # 去掉回车和句首空格，预处理字符串
@@ -117,7 +117,7 @@ class Words(str):
             self.precedenceMatrix[last + '  #'] = '>'
         self.precedenceMatrix['#  #'] = '='
 
-    def IsOG(self):
+    def IsOPG(self):
         if self.pflag and self.flag:
             print("\t\t\t\tYES!")
         else:
@@ -191,6 +191,12 @@ class Words(str):
                 s.append(a)
             if a == '#':
                 break
+
+    def IsOP(self):
+        if self.flag:
+            print('\t\t\t\tYES')
+        else:
+            print('\t\t\t\tNO')
 
     def analyzingWords(self):
         self.i = 1
@@ -275,7 +281,12 @@ class Menue():
 
     def wIsOPG(self):
         print('\n\n\n' + '*' * 160)
-        self.word.IsOG()
+        self.word.IsOPG()
+        print('*' * 160)
+
+    def wIsOP(self):
+        print('\n\n\n' + '*' * 160)
+        self.word.IsOP()
         print('*' * 160)
 
     def center_window(self, width, height):
@@ -295,6 +306,7 @@ class Menue():
         Button(form, text='处理后的文法', font='Helvetica -12 bold', command=(lambda: self.wOPG())).pack(expand=YES, fill=X)
         Button (form, text='Vn集', font = 'Helvetica -12 bold', command=(lambda : self.wVn())).pack( expand=YES, fill=X)
         Button(form, text='Vt集', font='Helvetica -12 bold', command=(lambda: self.wVt())).pack( expand=YES,fill=X)
+        Button(form, text='算符文法', font='Helvetica -12 bold', command=(lambda: self.wIsOP())).pack(expand=YES, fill=X)
         Button(form, text='FIRSTVT集', font = 'Helvetica -12 bold', command=(lambda: self.wFirst())).pack(expand=YES, fill=X)
         Button(form, text='LASTVT集', font = 'Helvetica -12 bold', command=(lambda: self.wLast())).pack( expand=YES, fill=X)
         Button(form, text='算符优先字典', font='Helvetica -12 bold', command=(lambda: self.wPrecedence())).pack(expand=YES, fill=X)
