@@ -11,12 +11,13 @@ class Words(str):
         self.Vn = []  # 记录文法中的非终结符
         self.record = {}  # 记录文法中的具体情况，是一个字典的形式，键为左边的非终结符，值为右边的推导式内容。可以理解为这就是文法
         self.flag = True  # 该值反应某一推导式是否会出现两个连续的非终结符，即文法是否是算符优先文法
+        self.pflag = True
         self.firstvt = {}  # 记录该文法的firstvt集，字典形式，键值对表示某非终结符的firstvt集
         self.lastvt = {}  # 记录文法的lastvt集， 字典形式， 键值对表示某非终结符的lastvt集
         self.precedenceMatrix = {}  # 算符优先矩阵
 
     def splitLine(self):  # 将文法的每个推导式分离出来
-        with open('test3', 'r', encoding='utf-8') as f:
+        with open('test.txt', 'r', encoding='utf-8') as f:
             for line in f.readlines():
                 self.line += 1
                 self.word = line.strip()  # 去掉回车和句首空格，预处理字符串
@@ -94,10 +95,18 @@ class Words(str):
                         list.append(str[i])
                     if i + 1 < len(str) and str[i] in self.Vn:  # 该字符如果非终结符在前，即 LASTVT(str[i]) >  str[i+1]
                         for last in self.lastvt[str[i]]:
-                            self.precedenceMatrix[last + '  ' + str[i + 1]] = '>'
+                            if last + '  ' + str[i + 1] in self.precedenceMatrix.keys():
+                                self.pflag = False
+                                break
+                            else:
+                                self.precedenceMatrix[last + '  ' + str[i + 1]] = '>'
                     elif i + 1 < len(str) and str[i] in self.Vt:  # 该字符如果是终结符在前，即 FIRSTVT(str[i+1]) < str[i]
                         for first in self.firstvt[str[i + 1]]:
-                            self.precedenceMatrix[str[i] + '  ' + first] = '<'
+                            if str[i] + '  ' + first in self.precedenceMatrix.keys():
+                                self.pflag = False
+                                break
+                            else:
+                                self.precedenceMatrix[str[i] + '  ' + first] = '<'
                     i += 1
                 for index1 in range(len(list)):
                     for index2 in range(index1 + 1, len(list)):
@@ -107,6 +116,12 @@ class Words(str):
         for last in self.lastvt[self.Vn[0]]:
             self.precedenceMatrix[last + '  #'] = '>'
         self.precedenceMatrix['#  #'] = '='
+
+    def IsOG(self):
+        if self.pflag and self.flag:
+            print("\t\t\t\tYES!")
+        else:
+            print("\t\t\t\tNO!")
 
     def reduction(self, l):
         fmt = '{{:{}}}{{:{}}}'.format(50, 5)
@@ -258,6 +273,11 @@ class Menue():
         self.word.isLeft()
         print('*' * 160)
 
+    def wIsOPG(self):
+        print('\n\n\n' + '*' * 160)
+        self.word.IsOG()
+        print('*' * 160)
+
     def center_window(self, width, height):
         screenwidth = self.window.winfo_screenwidth()
         screenheight = self.window.winfo_screenheight()
@@ -278,6 +298,7 @@ class Menue():
         Button(form, text='FIRSTVT集', font = 'Helvetica -12 bold', command=(lambda: self.wFirst())).pack(expand=YES, fill=X)
         Button(form, text='LASTVT集', font = 'Helvetica -12 bold', command=(lambda: self.wLast())).pack( expand=YES, fill=X)
         Button(form, text='算符优先字典', font='Helvetica -12 bold', command=(lambda: self.wPrecedence())).pack(expand=YES, fill=X)
+        Button(form, text='是否算符优先文法', font='Helvetica -12 bold', command=(lambda: self.wIsOPG())).pack(expand=YES, fill=X)
         Button(form, text='归约处理', font='Helvetica -12 bold', command=(lambda: self.wIsleft())).pack(expand=YES,fill=X)
         self.word = Words(str)
         self.word.splitLine()

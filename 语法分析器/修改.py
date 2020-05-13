@@ -114,14 +114,14 @@ class Words(str):
             self.precedenceMatrix[last + '  #'] = '>'
         self.precedenceMatrix['#  #'] = '='
 
-
     def reduction(self, l):
+        print(l, end='\t\t')
         flag = False
-        for key,value in self.record.items():
+        for key, value in self.record.items():
             for n in value:
                 n = list(n)
                 if n == l:
-                    print(l)
+                    print(key)
                     return key
         for j in range(len(l)):
             for key, value in self.record.items():
@@ -129,18 +129,18 @@ class Words(str):
                     if n == l[j]:
                         l[j] = key
                         flag = True
+
                         break
                 if flag:
                     break
             if flag:
                 break
-        for key,value in self.record.items():
+        for key, value in self.record.items():
             for n in value:
                 n = list(n)
                 if n == l:
-                    print(l)
+                    print(key)
                     return key
-
 
     def isLeft(self):
         s = ['#']
@@ -148,7 +148,7 @@ class Words(str):
         str = self.str[1:]
         str = str[::-1]
         str = list(str)
-        while True :
+        while True:
             while True:
                 a = str.pop()
                 if a in self.Vn:
@@ -156,35 +156,32 @@ class Words(str):
                     k += 1
                 else:
                     break
-            if s[k] in self.Vt:         # 确保s[j]是一个非终结符
+            if s[k] in self.Vt:  # 确保s[j]是一个非终结符
                 j = k
             else:
-                j = k-1
-            while self.precedenceMatrix[s[j]+'  '+a] == '>':
+                j = k - 1
+            while self.precedenceMatrix[s[j] + '  ' + a] == '>':
                 while True:
                     q = s[j]
-                    if s[j-1] in self.Vt:
+                    if s[j - 1] in self.Vt:
                         j -= 1
                     else:
                         j -= 2
-                    if self.precedenceMatrix[s[j]+'  '+q]== '<':
+                    if self.precedenceMatrix[s[j] + '  ' + q] == '<':
                         break
                 left = []
-                for i in range(k-j):
+                for i in range(k - j):
                     left.append(s.pop())
                 left = left[::-1]
-                k = j+1
+                k = j + 1
                 N = []
-                N=self.reduction(left)
+                N = self.reduction(left)
                 s += N
-                print(s)
-            if self.precedenceMatrix[s[j]+'  '+a] == '<' or self.precedenceMatrix[s[j]+'  '+a] == '=':
+            if self.precedenceMatrix[s[j] + '  ' + a] == '<' or self.precedenceMatrix[s[j] + '  ' + a] == '=':
                 k += 1
                 s.append(a)
             if a == '#':
                 break
-        print(s)
-
 
     def analyzingWords(self):
         self.i = 1
@@ -217,7 +214,7 @@ class Words(str):
 
 
 if __name__ == '__main__':
-    str = '#T+T*F+i+F#'
+    str = '#T+T*F+i#'
     print(str)
     w = Words(str)
     w.splitLine()
