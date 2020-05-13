@@ -24,30 +24,30 @@ class Words(str):
                 self.analyzingWords()
 
     def getFirstvt(self):
-        stack = []  # 这是一个栈数据结构
+        stack = []  # 这是一个栈数据结构,二维的，每个元素是一个列表，存储形如[V, b]，即b是v的FIRSTVT
         # 这是19页ppt的步骤（2）（3）----------------------------------------------------------------------
         print('\n\n\n'+'*' * 160)
         print('\t\t\tFIRSTVT集的栈出栈入栈情况')
         for key, value in self.record.items():  # 遍历文法
-            firstvt = []  # firstvt中存储形如U->b…或U->Vb的产生式
+            firstvt = []
             for str in value:
                 if str:
-                    if str[0] in self.Vt:
+                    if str[0] in self.Vt:           # 形如U->b…,以终结符打头的推导式,b入栈
                         stack.append([key, str[0]])
                         firstvt.append(str[0])
-                    elif len(str) > 1 and str[1] in self.Vt:
+                    elif len(str) > 1 and str[1] in self.Vt:    # 形如U->Vb...的产生式,b入栈
                         stack.append([key, str[1]])
                         firstvt.append(str[1])
             self.firstvt[key] = firstvt
         print(stack)
         # 步骤（4）---------------------------------------------------------------------------------------
-        while stack:
+        while stack:                        # 动态出入站确定剩余的集
             l = stack.pop()
             print('\t\t\t出栈：  <---' + l[0] + '   ' + l[1] + '---->')
             for key, value in self.record.items():
                 for str in value:
                     if str and l[0] == str[0] and str[0] in self.Vn:
-                        if l[1] not in self.firstvt[key]:  # 即判断出栈的非终结符V，是否存在推导式U->V，即v是否在U的value里
+                        if l[1] not in self.firstvt[key]:  # 即判断出栈的非终结符V，是否存在推导式U->V...，即v是否在U的value里
                             print('\t\t\t入栈：  ' + '--->' + key + '   ' + l[1] + '<----')
                             stack.append([key, l[1]])  # 如果存在根据步骤4，将key, l[1]入栈，并将F[U，b]置一，即存入self.firstvt
                             self.firstvt[key] += l[1]
@@ -118,54 +118,54 @@ class Words(str):
         self.precedenceMatrix['#  #'] = '='
 
     def IsOPG(self):
-        if self.pflag and self.flag:
+        if self.pflag and self.flag: #flag判断是否又连续的非非终结符， pfalg判断算符优先矩阵，key值是否唯一
             print("\t\t\t\tYES!")
         else:
             print("\t\t\t\tNO!")
 
-    def CanReduction(self, left, record):
+    def CanReduction(self, left, record):   # 判断这个最左素短语是否能归约成功
         flag = 0
-        for i in range(len(left)):
+        for i in range(len(left)):          # 定位最左素短语与疑似推导式的不同字符
             if left[i] != record[i]:
                 flag = i
                 break
-        for i in range(flag, len(record)):
-            if record[i] in self.Vt:
+        for i in range(flag, len(record)):  # 从该字符逐一向后遍历
+            if record[i] in self.Vt:        # 跳过终结符
                 break
             else:
                 a = left[i]
                 b = record[i]
                 while True:
-                    b = self.record[b][-1]
-                    if b==a:
+                    b = self.record[b][-1]      # 将b向下推导
+                    if b==a:                    #如果b==a即record[i]可以推导出left[i]
                         break
-                    if b in self.Vt:
-                        return False
+                    if b in self.Vt:            # 如果b是终结符则无法向下推导，即record[i]不可以推导出left[i]
+                        return False            # 所以该最左素短语不能归约
         return True
 
 
 
-    def reduction(self, l):
+    def reduction(self, l):                 # 参数是一个列表形式的最左素短语，任务归约返回最左素短语应该归约的非终结符（key)
         fmt = '{{:{}}}{{:{}}}'.format(50, 5)
-        left = ''.join(l)
+        left = ''.join(l)                       # 将l列表转换为字符串left
         flag = []
-        record =''
-        for key, value in self.record.items():
+        record =''                              # 疑似产生式
+        for key, value in self.record.items():  # 如果能直接找到最左素短语对应的产生式则key直接输出
             for n in value:
                 n = list(n)
                 if n == l:
                     print(fmt.format(left, key))
                     return key
-        for c in l:
+        for c in l:                             # 如果不是上述情况，保存最左素短语l的终结符
             if c in self.Vt:
                 flag = c
                 break
-        for key,value in self.record.items():
+        for key,value in self.record.items():   # 根据保存的非终结符直接定位待归约的推导式
             for str in value:
                 if flag in str:
                     record = str
                     keys = key
-        if(self.CanReduction(l, record)):
+        if(self.CanReduction(l, record)):       # 将最左素短语，以及疑似对应推导式传入函数
             print(fmt.format(left, keys))
             return keys
 
@@ -174,11 +174,11 @@ class Words(str):
 
 
 
-    def isLeft(self):
+    def isLeft(self):                       # 扫描句型判断并找出最左素短语
         s = ['#']
         k = 0
-        str = self.str[1:]
-        str = str[::-1]
+        str = self.str[1:]          #待测句型，去除 #
+        str = str[::-1]             # 因为每次pop都是从最后，再将str反转一下pop就是正序了
         str = list(str)
         try:
             while True:
@@ -189,26 +189,26 @@ class Words(str):
                         k += 1
                     else:
                         break
-                if s[k] in self.Vt:  # 确保s[j]是一个非终结符
+                if s[k] in self.Vt:  # 确保s[j]是一个终结符
                     j = k
                 else:
                     j = k - 1
                 while self.precedenceMatrix[s[j] + '  ' + a] == '>':
                     while True:
-                        q = s[j]
+                        q = s[j]                        # 定位最左素短语的最右端
                         if s[j - 1] in self.Vt:
                             j -= 1
                         else:
                             j -= 2
-                        if self.precedenceMatrix[s[j] + '  ' + q] == '<':
+                        if self.precedenceMatrix[s[j] + '  ' + q] == '<':       # 定位到最左素短语的最左端
                             break
                     left = []
-                    for i in range(k - j):
+                    for i in range(k - j):      # 将最左素短语摘下来存入left
                         left.append(s.pop())
                     left = left[::-1]
                     k = j + 1
                     N = []
-                    N = self.reduction(left)
+                    N = self.reduction(left)            # 最左素短语归约为n
                     s += N
                 if self.precedenceMatrix[s[j] + '  ' + a] == '<' or self.precedenceMatrix[s[j] + '  ' + a] == '=':
                     k += 1
